@@ -1,22 +1,10 @@
 # Use minimal stuff due to low storage
 $(call inherit-product, vendor/cm/config/common_mini_phone.mk)
 
-# Extra Ringtones
-include frameworks/base/data/sounds/AudioPackageNewWave.mk
-
 # Minumum kernel version requirement
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.min.kernel.version=2.6.32.60-nAa \
     ro.min.kernel.revision=05
-
-# MiniCM10 themes
-PRODUCT_COPY_FILES += \
-    device/semc/msm7x27-common/prebuilt/MiniCM10.apk:system/app/MiniCM10.apk \
-    device/semc/msm7x27-common/prebuilt/CrystalMiniCM10.apk:system/app/CrystalMiniCM10.apk
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.themeId=CrystalMiniCM10 \
-    persist.sys.themePackageName=com.darkdog.theme.crystalminicm10
 
 # Gps / Audio / Sensors / Lights
 PRODUCT_PACKAGES += \
@@ -61,19 +49,12 @@ PRODUCT_PACKAGES += \
     libstagefrighthw \
     libopencorehw
 
-# Live wallpaper packages
-PRODUCT_PACKAGES += \
-    LiveWallpapersPicker \
-    librs_jni
-
 # Extra packages
 PRODUCT_PACKAGES += \
-    CMFileManager \
     screencap \
     rzscontrol \
     rild \
     com.android.future.usb.accessory \
-    Apollo \
     make_ext4fs \
     setup_fs
 
