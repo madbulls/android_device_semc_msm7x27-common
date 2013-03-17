@@ -93,6 +93,19 @@ class EdifyGenerator(object):
            ');')
     self.script.append(self._WordWrap(cmd))
 
+  def AssertKernel(self, kernelversion, kernelrevision):
+    """Assert that the installed kernel meets the minimum version requirements."""
+    cmd = ('assert(' +
+           ' || \0'.join(['is_substring("%s", getprop("ro.kernel.version")'
+                         % kernelversion ]) +
+           '));')
+    self.script.append(self._WordWrap(cmd))
+    cmd = ('assert(' +
+           ' || \0'.join(['greater_than_int(getprop("ro.kernel.revision"), "%s"'
+                         % kernelrevision ]) +
+           '));')
+    self.script.append(self._WordWrap(cmd))
+
   def AssertSomeBootloader(self, *bootloaders):
     """Asert that the bootloader version is one of *bootloaders."""
     cmd = ("assert(" +

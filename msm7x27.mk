@@ -4,23 +4,38 @@ $(call inherit-product, vendor/cm/config/common_mini_phone.mk)
 # Extra Ringtones
 include frameworks/base/data/sounds/AudioPackageNewWave.mk
 
-# MiniCM10 theme
+# Minumum kernel version requirement
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.min.kernel.version=2.6.32.60-nAa \
+    ro.min.kernel.revision=05
+
+# MiniCM10 themes
 PRODUCT_COPY_FILES += \
-    device/semc/msm7x27-common/prebuilt/MiniCM10.apk:system/app/MiniCM10.apk
+    device/semc/msm7x27-common/prebuilt/MiniCM10.apk:system/app/MiniCM10.apk \
+    device/semc/msm7x27-common/prebuilt/CrystalMiniCM10.apk:system/app/CrystalMiniCM10.apk
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.themeId=MiniCM10 \
-    persist.sys.themePackageName=com.darkdog.theme.minicm10
+    persist.sys.themeId=CrystalMiniCM10 \
+    persist.sys.themePackageName=com.darkdog.theme.crystalminicm10
 
-# Gps / Audio / Wifi / Sensors / Lights
+# Gps / Audio / Sensors / Lights
 PRODUCT_PACKAGES += \
     gps.delta \
     sensors.msm7x27 \
     lights.msm7x27 \
+    audio.primary.msm7x27 \
+    audio_policy.msm7x27 \
     audio.a2dp.default \
-    wlan_loader \
-    wlan_cu \
-    dhcpcd.conf
+    audio.usb.default \
+
+# Wifi
+PRODUCT_PACKAGES += \
+    wpa_supplicant.conf \
+    hostapd_cli \
+    hostapd \
+    calibrator \
+    libnl \
+    iw
 
 # GPU
 PRODUCT_PACKAGES += \
@@ -48,20 +63,14 @@ PRODUCT_PACKAGES += \
 
 # Live wallpaper packages
 PRODUCT_PACKAGES += \
-    CMWallpapers \
     LiveWallpapersPicker \
-    librs_jni \
-    LiveWallpapers \
-    MagicSmokeWallpapers \
-    VisualizationWallpapers
+    librs_jni
 
 # Extra packages
 PRODUCT_PACKAGES += \
-    FileManager \
+    CMFileManager \
     screencap \
-    hostap \
     rzscontrol \
-    CMUpdateNotify \
     rild \
     com.android.future.usb.accessory \
     Apollo \
@@ -70,13 +79,13 @@ PRODUCT_PACKAGES += \
 
 # FM Radio
 PRODUCT_PACKAGES += \
-    hciattach \
-    com.ti.fm.fmreceiverif.xml \
-    fmreceiverif \
     Fmapplication \
-    libfmrx \
+    fmapp \
     libfm_stack \
-    FmRxService
+    fmreceiverif \
+    com.ti.fm.fmreceiverif.xml \
+    FmRxService \
+    libfmrx
 
 # for bugmailer
 PRODUCT_PACKAGES += send_bug
@@ -114,6 +123,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     system/bluetooth/data/main.le.conf:system/etc/bluetooth/main.conf
 
+# New Bluetooth firmware
+PRODUCT_COPY_FILES += \
+    device/semc/msm7x27-common/prebuilt/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts
+
 # hw_config.sh
 PRODUCT_COPY_FILES += \
     device/semc/msm7x27-common/prebuilt/hw_config.sh:system/etc/hw_config.sh
@@ -133,7 +146,9 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.ril.hsupa.category=6 \
     ro.ril.disable.power.collapse=1 \
     ro.telephony.ril_class=SemcRIL \
-    wifi.interface=tiwlan0
+    wifi.interface=wlan0 \
+    wifi.softap.interface=wlan0 \
+    wifi.softapconcurrent.interface=wlan0
 
 # Time between scans in seconds. Keep it high to minimize battery drain.
 # This only affects the case in which there are remembered access points,
@@ -153,13 +168,17 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Dithering
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.use_dithering=0
+    persist.sys.use_dithering=2
+
+# Force GPU for 2D rendering
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.sys.force_hw_ui=true
 
 # Default network type
 # 0 => WCDMA Preferred.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.default_network=0 \
-    ro.telephony.call_ring.delay=0 \
+    ro.telephony.call_ring.delay=1000 \
     ro.telephony.call_ring.multiple=false
 
 # Some more stuff:
@@ -198,10 +217,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # "m=y" register map
 PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dexopt-flags=m=y \
-    dalvik.vm.checkjni=false \
+    dalvik.vm.checkjni=0 \
+    ro.kernel.android.checkjni=0 \
     dalvik.vm.dexopt-data-only=1 \
     dalvik.vm.lockprof.threshold=500 \
     dalvik.vm.execution-mode=int:jit \
+    dalvik.vm.verify_bytecode=false \
     dalvik.vm.heapsize=32m
 
 # we have enough storage space to hold precise GC data
@@ -214,16 +235,24 @@ PRODUCT_PROPERTY_OVERRIDES += debug.sf.hw=1
 # Enable copybit composition
 PRODUCT_PROPERTY_OVERRIDES += debug.composition.type=mdp
 
-# Force 3 buffers
-PRODUCT_PROPERTY_OVERRIDES += debug.gr.numframebuffers=3
+# Force number of framebuffers and qcom optimizations
+PRODUCT_PROPERTY_OVERRIDES += \
+    debug.gr.numframebuffers=3 \
+    ro.max.fling_velocity=4000 \
+    debug.qctwa.statusbar=1 \
+    debug.qctwa.preservebuf=1
 
 # HardwareRenderer properties
 # dirty_regions: "false" to disable partial invalidates, override if enabletr=true
 PRODUCT_PROPERTY_OVERRIDES += \
     hwui.render_dirty_regions=false \
     hwui.disable_vsync=true \
+    debug.mdpcomp.logs=0 \
+    debug.sf.no_hw_vsync=1 \
     hwui.print_config=choice \
     debug.enabletr=false \
+    debug.hwui.render_dirty_regions=false \
+    debug.hwui.disable_vsync=true \
     com.qc.hardware=true
 
 # Compcache
@@ -233,7 +262,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Set usb type
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mass_storage,adb \
+    persist.sys.usb.config=mtp,adb \
     persist.service.adb.enable=1
 
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -247,11 +276,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     pm.sleep_mode=1 \
     persist.pmem.camera=4000000
 
-# Enable ti hotspot
-PRODUCT_PROPERTY_OVERRIDES += \
-    wifi.hotspot.ti=1 \
-    wifi.ap.interface = tiap0
-
 # Default ringtone
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.config.ringtone=CyanTone.ogg \
@@ -263,15 +287,18 @@ PRODUCT_LOCALES += en
 # Extra prebuilt binaries
 PRODUCT_COPY_FILES += \
     device/semc/msm7x27-common/prebuilt/com.sonyericsson.suquashi.jar:system/framework/com.sonyericsson.suquashi.jar \
-    device/semc/msm7x27-common/prebuilt/Radio.apk:system/app/Radio.apk \
     device/semc/msm7x27-common/prebuilt/SystemConnector.apk:system/app/SystemConnector.apk \
     device/semc/msm7x27-common/prebuilt/SemcSmfmf.jar:system/framework/SemcSmfmf.jar \
     device/semc/msm7x27-common/prebuilt/vold.fstab:system/etc/vold.fstab \
     device/semc/msm7x27-common/prebuilt/AudioFilter.csv:system/etc/AudioFilter.csv \
     device/semc/msm7x27-common/prebuilt/AutoVolumeControl.txt:system/etc/AutoVolumeControl.txt \
     device/semc/msm7x27-common/prebuilt/audio_policy.conf:system/etc/audio_policy.conf \
-    device/semc/msm7x27-common/prebuilt/media_codecs.xml:system/etc/media_codecs.xml \
-    device/semc/msm7x27-common/prebuilt/remount:system/xbin/remount \
+    device/semc/msm7x27-common/prebuilt/remount:system/xbin/remount
+
+# Media configuration
+PRODUCT_COPY_FILES += \
+    device/semc/msm7x27-common/prebuilt/media_profiles.xml:/system/etc/media_profiles.xml \
+    device/semc/msm7x27-common/prebuilt/media_codecs.xml:system/etc/media_codecs.xml
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
@@ -281,24 +308,19 @@ PRODUCT_COPY_FILES += \
     device/semc/msm7x27-common/prebuilt/usr/keylayout/systemconnector.kl:system/usr/keylayout/systemconnector.kl \
     device/semc/msm7x27-common/prebuilt/usr/keylayout/AVRCP.kl:system/usr/keylayout/AVRCP.kl
 
-# Wifi and hotspot
+# Wifi
 PRODUCT_COPY_FILES += \
-    device/semc/msm7x27-common/prebuilt/tiap_loader.sh:system/bin/tiap_loader.sh \
-    device/semc/msm7x27-common/prebuilt/10dnsconf:system/etc/init.d/10dnsconf \
-    device/semc/msm7x27-common/prebuilt/10hostapconf:system/etc/init.d/10hostapconf \
-    device/semc/msm7x27-common/prebuilt/hostapd.conf:system/etc/wifi/softap/hostapd.conf \
-    device/semc/msm7x27-common/prebuilt/dnsmasq.conf:system/etc/wifi/dnsmasq.conf \
-    device/semc/msm7x27-common/prebuilt/tiwlan_firmware.bin:system/etc/wifi/tiwlan_firmware.bin \
-    device/semc/msm7x27-common/prebuilt/tiwlan_firmware_ap.bin:system/etc/wifi/softap/tiwlan_firmware_ap.bin 
+    device/semc/msm7x27-common/prebuilt/hostapd.conf:system/etc/wifi/hostapd.conf \
+    device/semc/msm7x27-common/prebuilt/wifiload:system/bin/wifiload \
+    device/semc/msm7x27-common/prebuilt/wl1271-fw-multirole-roc.bin:system/etc/firmware/wl1271-fw-multirole-roc.bin 
 
 # A2SD and extra init files
 PRODUCT_COPY_FILES += \
     device/semc/msm7x27-common/prebuilt/a2sd:system/bin/a2sd \
     device/semc/msm7x27-common/prebuilt/00banner:system/etc/init.d/00banner \
+    device/semc/msm7x27-common/prebuilt/10dhcpcd:system/etc/init.d/10dhcpcd \
     device/semc/msm7x27-common/prebuilt/10apps2sd:system/etc/init.d/10apps2sd \
     device/semc/msm7x27-common/prebuilt/05mountext:system/etc/init.d/05mountext \
-    device/semc/msm7x27-common/prebuilt/04modules:system/etc/init.d/04modules \
-    device/semc/msm7x27-common/prebuilt/06minicm:system/etc/init.d/06minicm \
     device/semc/msm7x27-common/prebuilt/zipalign:system/xbin/zipalign
 
 # Adreno 200 files
@@ -319,15 +341,6 @@ PRODUCT_COPY_FILES += \
 # ANT
 PRODUCT_COPY_FILES += \
     device/semc/msm7x27-common/prebuilt/AntHalService.apk:system/app/AntHalService.apk
-
-# Hciattach
-PRODUCT_COPY_FILES += \
-    device/semc/msm7x27-common/prebuilt/hciattach:system/bin/hciattach
-
-# Audio blobs from ICS
-PRODUCT_COPY_FILES += \
-    device/semc/msm7x27-common/prebuilt/audio.primary.delta.so:system/lib/hw/audio.primary.delta.so \
-    device/semc/msm7x27-common/prebuilt/audio_policy.delta.so:system/lib/hw/audio_policy.delta.so
 
 # Extra Cyanogen vendor files
 PRODUCT_COPY_FILES += \

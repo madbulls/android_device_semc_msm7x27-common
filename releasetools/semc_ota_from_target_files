@@ -323,6 +323,9 @@ def AppendAssertions(script, input_zip):
   else:
     device = OPTIONS.override_device
   script.AssertDevice(device)
+  kernelversion = GetBuildProp("ro.min.kernel.version", input_zip)
+  kernelrevision = GetBuildProp("ro.min.kernel.revision", input_zip) 
+  script.AssertKernel(kernelversion, str(int(kernelrevision)-1))
 
 
 def MakeRecoveryPatch(output_zip, recovery_img, boot_img):
